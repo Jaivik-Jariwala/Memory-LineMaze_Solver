@@ -24,7 +24,7 @@ void setup() {
 
 void loop() {
   Serial.begin(9600);
-  for (int i = 14; i < 20; i++) {
+  for (int i = 13; i < 2; i++) {
     Serial.print("Pin");
     Serial.println(i);
     Serial.println(" = ");
