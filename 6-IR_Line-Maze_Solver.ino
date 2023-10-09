@@ -150,7 +150,7 @@ void right(){
 void left(){
   m3.run(BACKWARD);
   m4.run(FORWARD);
-  delay(50);
+  delay(50)
   m3.run(RELEASE);
   m4.run(RELEASE);
   delay(1);
