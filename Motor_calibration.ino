@@ -22,8 +22,15 @@ void loop() {
   stopMotors();
   delay(1000); // Stop for 1 second
   
+  // Move forward at a custom speed and duration
+  moveForward(255, 2000); // Speed: 255 (0-255), Duration: 2000 milliseconds
+  
+
   // Turn left at a custom speed and duration
   turnLeft(255, 1000); // Speed: 255 (0-255), Duration: 1000 milliseconds
+  
+  // Move forward at a custom speed and duration
+  moveForward(255, 2000); // Speed: 255 (0-255), Duration: 2000 milliseconds
   
   // Stop
   stopMotors();
@@ -32,6 +39,10 @@ void loop() {
   // Turn right at a custom speed and duration
   turnRight(255, 1000); // Speed: 255 (0-255), Duration: 1000 milliseconds
   
+    // Move forward at a custom speed and duration
+  moveForward(255, 2000); // Speed: 255 (0-255), Duration: 2000 milliseconds
+  
+
   // Stop
   stopMotors();
   delay(1000); // Stop for 1 second
