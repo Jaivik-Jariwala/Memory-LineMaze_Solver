@@ -1,4 +1,4 @@
-#include <Arduino.h>
+mn0#include <Arduino.h>
 #include <Adafruit_MotorShield.h>
 #include <AFMotor.h>
 #include <LiquidCrystal.h>
@@ -165,7 +165,7 @@ void loop() {
     GreenLightArea();
   } */
 
-  // Call recordAndRun when needed, e.g., after recording the desired path
+  // Call recordAndRun when needed, e.g., after recording the desired path  
   if (/* Your condition to start executing the path */) {
     recordAndRun();
   }
@@ -269,7 +269,7 @@ String shortPath(String path) {
 
   return path;
 }
-
++-  
 void executePath(String path) {
   for (int i = 0; i < path.length(); i++) {
     char move = path.charAt(i);

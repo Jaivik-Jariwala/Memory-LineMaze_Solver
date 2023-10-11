@@ -88,7 +88,7 @@ void loop() {
   if (digitalRead(14) && !digitalRead(15) && !digitalRead(16) && !digitalRead(17) && !digitalRead(18) && digitalRead(19)){
     Serial.println("Stop")
     halt();
-    RedLightArea();
+    RedLightArea(); 
   }
 
   // U-TURN CONDITION [0 0 0 0 0 0] - SINGLE CONDITION-------------------------
