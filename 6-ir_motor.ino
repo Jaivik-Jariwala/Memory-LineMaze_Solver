@@ -1,33 +1,34 @@
-#include <Adafruit_MotorShield.h>
-#include <AFMotor.h>
-
-// Define motor instances for pins 3 and 4
-AF_DCMotor m3(3);
-AF_DCMotor m4(4);
-
 // Define LED pin numbers (replace with actual pin numbers)
 const int greenLEDPin = 8;
 const int redLEDPin = 9;
 
-String recordedPath = "";
+// Motor control pins (replace with your L298N connections)
+const int motor1A = 2;
+const int motor1B = 3;
+const int motor2A = 4;
+const int motor2B = 5;
 
 void setup() {
-  // Initialize the motors
-  m3.setSpeed(255);
-  m4.setSpeed(255);
-  m3.run(RELEASE);
-  m4.run(RELEASE);
 
-  // Define and initialize the LED pins
+      // Function for setting up pinmode for Motor from 13 to 21
+  for (int i = 13; i < 22; i++) {
+    pinMode(i, INPUT);
+  }
+  
   pinMode(greenLEDPin, OUTPUT);
   pinMode(redLEDPin, OUTPUT);
 
-  // Start serial communication
+  pinMode(motor1A, OUTPUT);
+  pinMode(motor1B, OUTPUT);
+  pinMode(motor2A, OUTPUT);
+  pinMode(motor2B, OUTPUT);
+
+  // Initialize serial communication
   Serial.begin(9600);
 }
 
 void loop() {
-  // Scan Path for various conditions of the MAZE
+      // Scan Path for various conditions of the MAZE
   // PINID : [0 1 2 3 4 5]
 
   // FORWARD CONDITION [0 0 1 1 0 0] - SINGLE CONDITION-------------------------
@@ -84,65 +85,42 @@ void loop() {
     GreenLightArea();
   }
 
-  // Call recordAndRun when needed, e.g., after recording the desired path
-  if (/* Add your condition to start executing the path */) {
-    recordAndRun();
-  }
 }
 
-// Define movement functions (front, back, right, left, halt, uTurn, GreenLightArea, RedLightArea) here
-
 void front() {
-  m3.run(FORWARD);
-  m4.run(FORWARD);
-  delay(10);
-  m3.run(RELEASE);
-  m4.run(RELEASE);
-  delay(1);
+  digitalWrite(motor1A, HIGH);
+  digitalWrite(motor1B, LOW);
+  digitalWrite(motor2A, HIGH);
+  digitalWrite(motor2B, LOW);
 }
 
 void back() {
-  m3.run(BACKWARD);
-  m4.run(BACKWARD);
-  delay(50);
-  m3.run(RELEASE);
-  m4.run(RELEASE);
-  delay(1);
+  digitalWrite(motor1A, LOW);
+  digitalWrite(motor1B, HIGH);
+  digitalWrite(motor2A, LOW);
+  digitalWrite(motor2B, HIGH);
 }
 
 void right() {
-  m3.run(FORWARD);
-  m4.run(BACKWARD);
-  delay(50);
-  m3.run(RELEASE);
-  m4.run(RELEASE);
-  delay(1);
+  digitalWrite(motor1A, HIGH);
+  digitalWrite(motor1B, LOW);
+  digitalWrite(motor2A, LOW);
+  digitalWrite(motor2B, HIGH);
 }
 
 void left() {
-  m3.run(BACKWARD);
-  m4.run(FORWARD);
-  delay(50);
-  m3.run(RELEASE);
-  m4.run(RELEASE);
-  delay(1);
+  digitalWrite(motor1A, LOW);
+  digitalWrite(motor1B, HIGH);
+  digitalWrite(motor2A, HIGH);
+  digitalWrite(motor2B, LOW);
 }
 
 void halt() {
-  m3.run(RELEASE);
-  m4.run(RELEASE);
-  delay(10000);
-}
-
-void uTurn() {
-  m3.run(RELEASE);
-  m4.run(RELEASE);
-  delay(1000);
-  m3.run(FORWARD);
-  m4.run(BACKWARD);
-  delay(2000);
-  m3.run(RELEASE);
-  m4.run(RELEASE);
+  digitalWrite(motor1A, LOW);
+  digitalWrite(motor1B, LOW);
+  digitalWrite(motor2A, LOW);
+  digitalWrite(motor2B, LOW);
+  delay(1000);  // Adjust the halt duration
 }
 
 void GreenLightArea() {
@@ -152,47 +130,7 @@ void GreenLightArea() {
 }
 
 void RedLightArea() {
-  digitalWrite(redLEDPin, HIGH); // Fixed typo: changed "greenLEDPin" to "redLEDPin"
-  delay(10000);
-  digitalWrite(redLEDPin, LOW);  // Fixed typo: changed "greenLEDPin" to "redLEDPin"
-}
-
-void recordAndRun() {
-  String shortestPath = shortPath(recordedPath);
-  executePath(shortestPath);
-}
-
-String shortPath(String path) {
-  String substitutions[][2] = {
-    {"LBL", "S"},
-    {"LBS", "R"},
-    {"RBL", "B"},
-    {"SBS", "B"},
-    {"SBL", "R"},
-    {"LBR", "B"}
-  };
-
-  for (int i = 0; i < sizeof(substitutions) / sizeof(substitutions[0]); i++) {
-    path.replace(substitutions[i][0], substitutions[i][1]);
-  }
-
-  return path;
-}
-
-void executePath(String path) {
-  for (int i = 0; i < path.length(); i++) {
-    char move = path.charAt(i);
-
-    if (move == 'L') {
-      left();
-    } else if (move == 'R') {
-      right();
-    } else if (move == 'B') {
-      uTurn();
-    } else if (move == 'S') {
-      front();
-    }
-
-    delay(1000); // Adjust the delay time as needed
-  }
+  digitalWrite(redLEDPin, HIGH);
+  delay(10000);  // Adjust the duration the red LED is on
+  digitalWrite(redLEDPin, LOW);
 }

@@ -1,7 +1,6 @@
-mn0#include <Arduino.h>
-#include <Adafruit_MotorShield.h>
-#include <AFMotor.h>
+#include <Arduino.h>
 #include <LiquidCrystal.h>
+#include <PID_v1.h> // Include the PID library
 
 // Define the LCD pins
 LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
@@ -10,9 +9,30 @@ LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
 const int greenLEDPin = 8;
 const int redLEDPin = 9;
 
-// Motor instance for pins 3 and 4
-AF_DCMotor m3(3);
-AF_DCMotor m4(4);
+// Define L298 motor driver pins
+const int motor1Pin1 = 10; // Connect to IN1 on L298
+const int motor1Pin2 = 11; // Connect to IN2 on L298
+const int motor2Pin1 = 12; // Connect to IN3 on L298
+const int motor2Pin2 = 13; // Connect to IN4 on L298
+
+// Define IR sensor pins
+const int irSensor1Pin = A0;
+const int irSensor2Pin = A1;
+const int irSensor3Pin = A2;
+const int irSensor4Pin = A3;
+const int irSensor5Pin = A4;
+const int irSensor6Pin = A5;
+
+// Define PID parameters
+double Setpoint = 0;
+double Input = 0;
+double Output1 = 0;
+double Output2 = 0;
+double Kp = 1.0; // Proportional term
+double Ki = 0.0; // Integral term
+double Kd = 0.0; // Derivative term
+PID pid1(&Input, &Output1, &Setpoint, Kp, Ki, Kd, DIRECT);
+PID pid2(&Input, &Output2, &Setpoint, Kp, Ki, Kd, DIRECT);
 
 String recordedPath = "";
 
@@ -25,23 +45,53 @@ void setup() {
   pinMode(greenLEDPin, OUTPUT);
   pinMode(redLEDPin, OUTPUT);
 
-  // Function for setting up pinmode for Motor from 13 to 21
-  for (int i = 13; i < 22; i++) {
-    pinMode(i, INPUT);
-  }
+  // Set motor pins as outputs
+  pinMode(motor1Pin1, OUTPUT);
+  pinMode(motor1Pin2, OUTPUT);
+  pinMode(motor2Pin1, OUTPUT);
+  pinMode(motor2Pin2, OUTPUT);
 
-  // Speed of motors (adjust as needed)
-  m3.setSpeed(300);
-  m4.setSpeed(300);
-  m3.run(RELEASE);
-  m4.run(RELEASE);
-  
   // Initialize serial communication
   Serial.begin(9600);
+
+  // Initialize PID control
+  pid1.SetOutputLimits(-255, 255); // Set the output limits for the motors
+  pid1.SetMode(AUTOMATIC);
+  pid2.SetOutputLimits(-255, 255);
+  pid2.SetMode(AUTOMATIC);
 }
 
 void loop() {
-void loop() {
+  // Read IR sensor values
+  int sensor1Value = analogRead(irSensor1Pin);
+  int sensor2Value = analogRead(irSensor2Pin);
+  int sensor3Value = analogRead(irSensor3Pin);
+  int sensor4Value = analogRead(irSensor4Pin);
+  int sensor5Value = analogRead(irSensor5Pin);
+  int sensor6Value = analogRead(irSensor6Pin);
+
+  // Calculate Input based on IR sensor values (adjust as needed)
+  Input = sensor1Value - sensor2Value + sensor3Value - sensor4Value + sensor5Value - sensor6Value;
+
+  // Calculate PID control outputs
+  pid1.Compute();
+  pid2.Compute();
+
+  // Apply the PID control outputs to the motors
+  analogWrite(motor1Pin1, abs(Output1));
+  analogWrite(motor1Pin2, 0);
+  analogWrite(motor2Pin1, abs(Output2));
+  analogWrite(motor2Pin2, 0);
+
+  // Check if there is serial data available to read
+  if (Serial.available()) {
+    // Read the serial data
+    char incomingChar = Serial.read();
+
+    // Print the received character to the LCD
+    lcd.write(incomingChar);
+  }
+
   // Check if there is serial data available to read
   if (Serial.available()) {
     // Read the serial data
@@ -189,52 +239,101 @@ Motor : Front , Back , Right , Left , halt , U-turn ,
 LED : GreenLED , RedLED
 */
 //front(), back(), Right(), Left()
-void front(){
-  m3.run(FORWARD);
-  m4.run(FORWARD);
+void front() {
+  digitalWrite(motor1Pin1, HIGH);
+  digitalWrite(motor1Pin2, LOW);
+  digitalWrite(motor2Pin1, HIGH);
+  digitalWrite(motor2Pin2, LOW);
+  // Adjust the delay as needed
   delay(10);
-  m3.run(RELEASE);
-  m4.run(RELEASE);
+  // Stop the motors
+  digitalWrite(motor1Pin1, LOW);
+  digitalWrite(motor1Pin2, LOW);
+  digitalWrite(motor2Pin1, LOW);
+  digitalWrite(motor2Pin2, LOW);
   delay(1);
 }
-void Back(){
-  m3.run(BACKWARD);
-  m4.run(BACKWARD);
+
+void back() {
+  digitalWrite(motor1Pin1, LOW);
+  digitalWrite(motor1Pin2, HIGH);
+  digitalWrite(motor2Pin1, LOW);
+  digitalWrite(motor2Pin2, HIGH);
+  // Adjust the delay as needed
   delay(50);
-  m3.run(RELEASE);
-  m4.run(RELEASE);
+  // Stop the motors
+  digitalWrite(motor1Pin1, LOW);
+  digitalWrite(motor1Pin2, LOW);
+  digitalWrite(motor2Pin1, LOW);
+  digitalWrite(motor2Pin2, LOW);
   delay(1);
 }
-void right(){
-  m3.run(FORWARD);
-  m4.run(BACKWARD);
+
+void right() {
+  digitalWrite(motor1Pin1, HIGH);
+  digitalWrite(motor1Pin2, LOW);
+  digitalWrite(motor2Pin1, LOW);
+  digitalWrite(motor2Pin2, HIGH);
+  // Adjust the delay as needed
   delay(50);
-  m3.run(RELEASE);
-  m4.run(RELEASE);
+  // Stop the motors
+  digitalWrite(motor1Pin1, LOW);
+  digitalWrite(motor1Pin2, LOW);
+  digitalWrite(motor2Pin1, LOW);
+  digitalWrite(motor2Pin2, LOW);
   delay(1);
 }
-void left(){
-  m3.run(BACKWARD);
-  m4.run(FORWARD);
+
+void left() {
+  digitalWrite(motor1Pin1, LOW);
+  digitalWrite(motor1Pin2, HIGH);
+  digitalWrite(motor2Pin1, HIGH);
+  digitalWrite(motor2Pin2, LOW);
+  // Adjust the delay as needed
   delay(50);
-  m3.run(RELEASE);
-  m4.run(RELEASE);
+  // Stop the motors
+  digitalWrite(motor1Pin1, LOW);
+  digitalWrite(motor1Pin2, LOW);
+  digitalWrite(motor2Pin1, LOW);
+  digitalWrite(motor2Pin2, LOW);
   delay(1);
 }
-void halt(){
-  m3.run(RELEASE)
-  m4.run(RELEASE)
-  delay(10000)
+
+void halt() {
+  digitalWrite(motor1Pin1, LOW);
+  digitalWrite(motor1Pin2, LOW);
+  digitalWrite(motor2Pin1, LOW);
+  digitalWrite(motor2Pin2, LOW);
+  delay(10000);
 }
-void UTurn(){
-  m3.run(RELEASE);
-  m4.run(RELEASE);
+
+void uTurn() {
+  digitalWrite(motor1Pin1, LOW);
+  digitalWrite(motor1Pin2, LOW);
+  digitalWrite(motor2Pin1, LOW);
+  digitalWrite(motor2Pin2, LOW);
   delay(1000);
-  m3.run(FORWARD);
-  m4.run(BACKWARD);
+  digitalWrite(motor1Pin1, HIGH);
+  digitalWrite(motor1Pin2, LOW);
+  digitalWrite(motor2Pin1, LOW);
+  digitalWrite(motor2Pin2, HIGH);
   delay(2000);
-  m3.run(RELEASE);
-  m4.run(RELEASE);
+  digitalWrite(motor1Pin1, LOW);
+  digitalWrite(motor1Pin2, LOW);
+  digitalWrite(motor2Pin1, LOW);
+  digitalWrite(motor2Pin2, LOW);
+}
+
+void GreenLightArea() {
+  digitalWrite(greenLEDPin, HIGH);
+  delay(10);
+  digitalWrite(greenLEDPin, LOW);
+}
+
+void RedLightArea() {
+  digitalWrite(redLEDPin, HIGH);
+  delay(10000);
+  digitalWrite(redLEDPin, LOW);
 }
 void GreenLightArea(){
   digitalWrite(greenLEDPin, HIGH);
